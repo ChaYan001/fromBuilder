@@ -1,0 +1,23 @@
+﻿@namespace fromBuilder.Components
+
+@code {
+    [Parameter] public string HtmlCode { get; set; } = "";
+}
+
+<div class="code-viewer">
+    <pre>@HtmlCode</pre>
+</div>
+
+<style>
+    .code-viewer {
+        background-color: #1e1e1e;
+        color: #dcdcdc;
+        padding: 10px;
+        overflow: auto;
+        height: 100%;
+    }
+
+    pre {
+        white-space: pre-wrap;
+    }
+</style>

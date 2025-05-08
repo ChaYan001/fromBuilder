@@ -1,0 +1,6 @@
+﻿<FormBuilder OnHtmlChanged="@((html) => CurrentHtml = html)" />
+<CodeViewer HtmlCode="@CurrentHtml" />
+
+@code {
+    private string CurrentHtml = "";
+}

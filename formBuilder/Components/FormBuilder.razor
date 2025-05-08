@@ -1,0 +1,461 @@
+﻿@namespace fromBuilder.Components
+@inject IJSRuntime JSRuntime
+@using DevExpress.Blazor
+
+<div class="form-builder-container">
+    <div @ref="formBuilderDiv"
+         class="form-builder"
+         ondrop="onDropHandler(event)"
+         ondragover="event.preventDefault()">
+        @foreach (var element in HtmlElements)
+        {
+            <div class="draggable @(selectedElement?.Id == element.Id ? "selected" : "")"
+                 style="position:absolute; left:@element.LeftPx; top:@element.TopPx;"
+                 @onmousedown="(e) => StartDrag(element, e)"
+                 @ondblclick:stopPropagation="true"
+                 @ondblclick="() => SelectElement(element)"
+                 @key="element.Id">
+                @((MarkupString)element.Html)
+            </div>
+        }
+    </div>
+
+    @if (selectedElement != null && isPropertiesPanelVisible)
+    {
+        <div class="properties-panel-flyout">
+            <div class="properties-panel">
+                <DxFormLayout>
+                    <DxFormLayoutItem Caption="Element ID" ColSpanMd="12">
+                        <DxTextBox Text="@selectedElement.Id.ToString()" ReadOnly="true" />
+                    </DxFormLayoutItem>
+
+                    <DxFormLayoutItem Caption="Element Type" ColSpanMd="12">
+                        <DxTextBox Text="@selectedElement.ElementType" ReadOnly="true" />
+                    </DxFormLayoutItem>
+
+                    <DxFormLayoutItem Caption="Position" ColSpanMd="12">
+                        <div class="d-flex gap-2">
+                            <DxSpinEdit @bind-Value="@selectedElement.Left" Caption="X" />
+                            <DxSpinEdit @bind-Value="@selectedElement.Top" Caption="Y" />
+                        </div>
+                    </DxFormLayoutItem>
+
+                    @* TextBox Properties *@
+                    @if (selectedElement.ElementType == "TextBox")
+                    {
+                        <DxFormLayoutItem Caption="Label" ColSpanMd="12">
+                            <DxTextBox @bind-Text="@textBoxLabel" />
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem Caption="Placeholder" ColSpanMd="12">
+                            <DxTextBox @bind-Text="@textBoxPlaceholder" />
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem Caption="Width (px)" ColSpanMd="12">
+                            <DxSpinEdit @bind-Value="@textBoxWidth" />
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem Caption="Required" ColSpanMd="12">
+                            <DxCheckBox @bind-Checked="@textBoxRequired" />
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem Caption="Input Type" ColSpanMd="12">
+                            <DxComboBox Data="@inputTypes" @bind-Value="@textBoxInputType" />
+                        </DxFormLayoutItem>
+
+                    }
+                    @* Button Properties *@
+                    else if (selectedElement.ElementType == "Button")
+                    {
+                        <DxFormLayoutItem Caption="Button Text" ColSpanMd="12">
+                            <DxTextBox @bind-Text="@buttonText" />
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem Caption="Button Type" ColSpanMd="12">
+                            <DxComboBox Data="@buttonTypes" @bind-Value="@buttonType" />
+                        </DxFormLayoutItem>
+                    }
+                    @* Checkbox Properties *@
+                    else if (selectedElement.ElementType == "CheckBox")
+                    {
+                        <DxFormLayoutItem Caption="Label" ColSpanMd="12">
+                            <DxTextBox @bind-Text="@checkboxLabel" />
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem Caption="Checked by Default" ColSpanMd="12">
+                            <DxCheckBox @bind-Checked="@checkboxDefaultChecked" />
+                        </DxFormLayoutItem>
+                    }
+                </DxFormLayout>
+
+                <div class="button-group">
+                    <DxButton Text="Apply Changes" Click="@ApplyChanges" CssClass="me-2 btn-save" />
+                    <DxButton Text="Delete Element" Click="@DeleteElement" ButtonType="ButtonType.Danger" CssClass="btn-delete" />
+                    <DxButton Click="@(() => isPropertiesPanelVisible = false)" CssClass="ms-2 btn-close" />
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    /* Form builder container */
+    .form-builder-container {
+        height: 100%;
+        position: relative;
+        display: flex;
+        flex-direction: row;
+        padding: 20px;
+        background-color: #f4f7fa;
+    }
+
+    /* Form builder with dashed border */
+    .form-builder {
+        height: 100%;
+        width: 100%;
+        padding: 20px;
+        border: 2px dashed #b2bec3;
+        background: #ffffff;
+        overflow-y: auto;
+        position: relative;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Draggable items */
+    .draggable {
+        cursor: move;
+        padding: 10px;
+        border: 1px solid transparent;
+        transition: border 0.3s ease;
+    }
+
+        /* Selected draggable item */
+        .draggable.selected {
+            border: 2px solid #007bff;
+            box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+        }
+
+    /* Properties panel styles */
+    .properties-panel {
+        padding: 20px;
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        margin-top: 10px;
+        margin-right: 20px;
+    }
+
+    /* Button group styling */
+    .button-group {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+    }
+
+    /* Save button */
+    .btn-save {
+        background-color: #007bff;
+        color: white;
+        border-radius: 4px;
+        padding: 10px 20px;
+        transition: background-color 0.3s ease;
+    }
+
+        .btn-save:hover {
+            background-color: #0056b3;
+        }
+
+    /* Delete button */
+    .btn-delete {
+        background-color: #dc3545;
+        color: white;
+        border-radius: 4px;
+        padding: 10px 20px;
+        transition: background-color 0.3s ease;
+    }
+
+        .btn-delete:hover {
+            background-color: #c82333;
+        }
+
+    /* Close button */
+    .btn-close {
+        background-color: #6c757d;
+        color: white;
+        border-radius: 4px;
+        padding: 10px 20px;
+        transition: background-color 0.3s ease;
+    }
+
+        .btn-close:hover {
+            background-color: #5a6268;
+        }
+
+    /* Properties panel flyout (popup) styles */
+    .properties-panel-flyout {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 400px;
+        height: 100%;
+        background: #f8f9fa;
+        box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+        z-index: 1050;
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+        overflow-y: auto;
+        transition: transform 0.3s ease-in-out;
+    }
+
+    .dx-spinedit .dx-spinbutton {
+        padding: 0;
+        margin: 0;
+    }
+
+    .dx-spinedit input {
+        padding-right: 20px; /* Adjust the padding to fit the spin buttons */
+    }
+
+</style>
+
+
+@code {
+    private ElementReference formBuilderDiv;
+    private DotNetObjectReference<FormBuilder>? selfRef;
+
+    private List<FormElement> HtmlElements = new();
+    private FormElement? draggingElement;
+    private FormElement? selectedElement;
+    private double offsetX, offsetY;
+    private bool isPropertiesPanelVisible = false;
+
+    private string textBoxPlaceholder = "";
+    private double textBoxWidth = 200;
+    private string textBoxLabel = "";
+    private bool textBoxRequired = false;
+
+    private string buttonText = "";
+    private string buttonType = "Primary";
+
+    private string checkboxLabel = "";
+    private bool checkboxDefaultChecked = false;
+
+    private string textBoxInputType = "text";
+    private List<string> inputTypes = new() { "text", "number", "email", "password", "date", "tel", "url" };
+
+
+    private List<string> buttonTypes = new() { "Primary", "Secondary", "Success", "Danger", "Warning", "Info" };
+
+    [Parameter] public EventCallback<string> OnHtmlChanged { get; set; }
+
+    private void StartDrag(FormElement element, MouseEventArgs e)
+    {
+        draggingElement = element;
+        offsetX = e.ClientX - element.Left;
+        offsetY = e.ClientY - element.Top;
+        _ = JSRuntime.InvokeVoidAsync("enableFormBuilderDragging", selfRef);
+    }
+
+    private void HandleVisibilityChanged(bool value) => isPropertiesPanelVisible = value;
+
+    private void SelectElement(FormElement element)
+    {
+        selectedElement = element;
+        isPropertiesPanelVisible = true;
+
+        if (element.ElementType == "TextBox")
+        {
+            textBoxPlaceholder = element.GetProperty<string>("Placeholder") ?? "";
+            textBoxWidth = element.GetProperty<double>("Width");
+            textBoxLabel = element.GetProperty<string>("Label") ?? "";
+            textBoxRequired = element.GetProperty<bool>("Required");
+            textBoxInputType = element.GetProperty<string>("InputType") ?? "text";
+
+        }
+        else if (element.ElementType == "Button")
+        {
+            buttonText = element.GetProperty<string>("Text") ?? "Click";
+            buttonType = element.GetProperty<string>("ButtonType") ?? "Primary";
+        }
+        else if (element.ElementType == "CheckBox")
+        {
+            checkboxLabel = element.GetProperty<string>("Label") ?? "";
+            checkboxDefaultChecked = element.GetProperty<bool>("DefaultChecked");
+        }
+
+        StateHasChanged();
+    }
+
+    private void ApplyChanges()
+    {
+        if (selectedElement == null) return;
+
+        switch (selectedElement.ElementType)
+        {
+            case "TextBox":
+                selectedElement.SetProperty("Placeholder", textBoxPlaceholder);
+                selectedElement.SetProperty("Width", textBoxWidth);
+                selectedElement.SetProperty("Label", textBoxLabel);
+                selectedElement.SetProperty("Required", textBoxRequired);
+                selectedElement.SetProperty("InputType", textBoxInputType);
+
+                break;
+            case "Button":
+                selectedElement.SetProperty("Text", buttonText);
+                selectedElement.SetProperty("ButtonType", buttonType);
+                break;
+            case "CheckBox":
+                selectedElement.SetProperty("Label", checkboxLabel);
+                selectedElement.SetProperty("DefaultChecked", checkboxDefaultChecked);
+                break;
+        }
+
+        UpdateElementHtml(selectedElement);
+        NotifyHtmlChanged();
+        StateHasChanged();
+    }
+
+    private void DeleteElement()
+    {
+        if (selectedElement == null) return;
+
+        HtmlElements.Remove(selectedElement);
+        selectedElement = null;
+        isPropertiesPanelVisible = false;
+        NotifyHtmlChanged();
+        StateHasChanged();
+    }
+
+    private void UpdateElementHtml(FormElement element)
+    {
+        switch (element.ElementType)
+        {
+            case "TextBox":
+                var placeholder = element.GetProperty<string>("Placeholder");
+                var width = element.GetProperty<double>("Width");
+                var label = element.GetProperty<string>("Label");
+                var required = element.GetProperty<bool>("Required");
+
+                var labelHtml = !string.IsNullOrEmpty(label) ? $"<label>{label}{(required ? " *" : "")}</label><br/>" : "";
+                var inputType = element.GetProperty<string>("InputType") ?? "text";
+                element.Html = $"{labelHtml}<input type='{inputType}' class='form-control' placeholder='{placeholder}' style='width: {width}px;' {(required ? "required" : "")} />";
+                break;
+
+            case "Button":
+                var text = element.GetProperty<string>("Text");
+                var type = element.GetProperty<string>("ButtonType")?.ToLower() ?? "primary";
+                element.Html = $"<button class='btn btn-{type}'>{text}</button>";
+                break;
+
+            case "CheckBox":
+                var cbLabel = element.GetProperty<string>("Label");
+                var isChecked = element.GetProperty<bool>("DefaultChecked");
+                element.Html = $"<div class='form-check'><input type='checkbox' class='form-check-input' {(isChecked ? "checked" : "")} /> <label class='form-check-label'>{cbLabel}</label></div>";
+                break;
+        }
+    }
+
+    private async void NotifyHtmlChanged()
+    {
+        await OnHtmlChanged.InvokeAsync(string.Join("", HtmlElements.Select(e => e.Html)));
+    }
+
+    [JSInvokable]
+    public async Task HandleDrop(string elementType, double x, double y)
+    {
+        var element = new FormElement
+        {
+            Id = Guid.NewGuid(),
+            Left = x,
+            Top = y,
+            ElementType = elementType
+        };
+
+        switch (elementType)
+        {
+            case "TextBox":
+                element.SetProperty("Placeholder", "Enter text here");
+                element.SetProperty("Width", 200.0);
+                element.SetProperty("Label", "");
+                element.SetProperty("Required", false);
+                element.SetProperty("InputType", "text");
+                element.Html = "<input type='text' class='form-control' placeholder='Enter text here' />";
+                break;
+
+
+            case "Button":
+                element.SetProperty("Text", "Click");
+                element.SetProperty("ButtonType", "Primary");
+                element.Html = "<button class='btn btn-primary'>Click</button>";
+                break;
+
+            case "CheckBox":
+                element.SetProperty("Label", "Checkbox");
+                element.SetProperty("DefaultChecked", false);
+                element.Html = "<div class='form-check'><input type='checkbox' class='form-check-input' /> <label class='form-check-label'>Checkbox</label></div>";
+                break;
+        }
+
+        HtmlElements.Add(element);
+        await OnHtmlChanged.InvokeAsync(string.Join("", HtmlElements.Select(e => e.Html)));
+        SelectElement(element);
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void OnMouseMove(double clientX, double clientY)
+    {
+        if (draggingElement != null)
+        {
+            draggingElement.Left = clientX - offsetX;
+            draggingElement.Top = clientY - offsetY;
+            StateHasChanged();
+        }
+    }
+
+    [JSInvokable]
+    public void OnMouseUp()
+    {
+        if (draggingElement != null)
+        {
+            NotifyHtmlChanged();
+            draggingElement = null;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            selfRef = DotNetObjectReference.Create(this);
+            await JSRuntime.InvokeVoidAsync("registerFormBuilder", selfRef);
+        }
+    }
+
+    public void Dispose()
+    {
+        selfRef?.Dispose();
+    }
+
+    private class FormElement
+    {
+        public Guid Id { get; set; }
+        public string Html { get; set; } = "";
+        public double Left { get; set; }
+        public double Top { get; set; }
+        public string ElementType { get; set; } = "";
+        private Dictionary<string, object> Properties { get; set; } = new();
+
+        public string LeftPx => $"{Left}px";
+        public string TopPx => $"{Top}px";
+
+        public T GetProperty<T>(string key)
+        {
+            if (Properties.TryGetValue(key, out var value) && value is T typed)
+                return typed;
+            return default!;
+        }
+
+        public void SetProperty<T>(string key, T value)
+        {
+            Properties[key] = value;
+        }
+
+
+    }
+}
