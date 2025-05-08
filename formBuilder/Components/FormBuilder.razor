@@ -202,15 +202,6 @@
         transition: transform 0.3s ease-in-out;
     }
 
-    .dx-spinedit .dx-spinbutton {
-        padding: 0;
-        margin: 0;
-    }
-
-    .dx-spinedit input {
-        padding-right: 20px; /* Adjust the padding to fit the spin buttons */
-    }
-
 </style>
 
 
@@ -293,19 +284,23 @@
                 selectedElement.SetProperty("Label", textBoxLabel);
                 selectedElement.SetProperty("Required", textBoxRequired);
                 selectedElement.SetProperty("InputType", textBoxInputType);
-
                 break;
+
             case "Button":
                 selectedElement.SetProperty("Text", buttonText);
                 selectedElement.SetProperty("ButtonType", buttonType);
                 break;
+
             case "CheckBox":
                 selectedElement.SetProperty("Label", checkboxLabel);
                 selectedElement.SetProperty("DefaultChecked", checkboxDefaultChecked);
                 break;
         }
 
+        // Update the HTML to include position information
         UpdateElementHtml(selectedElement);
+
+        // Notify parent about HTML changes
         NotifyHtmlChanged();
         StateHasChanged();
     }
@@ -350,21 +345,32 @@
         }
     }
 
-    private async void NotifyHtmlChanged()
+    private async Task NotifyHtmlChanged()
     {
-        await OnHtmlChanged.InvokeAsync(string.Join("", HtmlElements.Select(e => e.Html)));
+        // Create formatted output with position information for each container
+        var formattedHtml = new System.Text.StringBuilder();
+
+        foreach (var element in HtmlElements)
+        {
+            // Create a wrapper div with position information and element metadata
+            formattedHtml.AppendLine($"<div class='form-element {element.ElementType.ToLower()}' data-element-id='{element.Id}' style='position:absolute; left:{element.Left}px; top:{element.Top}px;'>");
+            formattedHtml.AppendLine($"  {element.Html}");
+            formattedHtml.AppendLine("</div>");
+        }
+
+        await OnHtmlChanged.InvokeAsync(formattedHtml.ToString());
     }
 
     [JSInvokable]
     public async Task HandleDrop(string elementType, double x, double y)
     {
         var element = new FormElement
-        {
-            Id = Guid.NewGuid(),
-            Left = x,
-            Top = y,
-            ElementType = elementType
-        };
+            {
+                Id = Guid.NewGuid(),
+                Left = x,
+                Top = y,
+                ElementType = elementType
+            };
 
         switch (elementType)
         {
@@ -392,7 +398,7 @@
         }
 
         HtmlElements.Add(element);
-        await OnHtmlChanged.InvokeAsync(string.Join("", HtmlElements.Select(e => e.Html)));
+        await NotifyHtmlChanged();
         SelectElement(element);
         StateHasChanged();
     }
@@ -455,7 +461,5 @@
         {
             Properties[key] = value;
         }
-
-
     }
 }
