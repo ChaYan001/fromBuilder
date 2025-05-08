@@ -4,7 +4,8 @@
 
 <div class="form-builder-container">
     <div @ref="formBuilderDiv"
-         class="form-builder"
+         class="form-builder @(showGrid ? "show-grid" : "")"
+         style="background-size: @(gridSize)px @(gridSize)px;"
          ondrop="onDropHandler(event)"
          ondragover="event.preventDefault()">
         @foreach (var element in HtmlElements)
@@ -90,6 +91,17 @@
             </div>
         </div>
     }
+
+    <div class="form-settings-panel">
+        <DxFormLayout>
+            <DxFormLayoutItem Caption="Grid Settings" ColSpanMd="12">
+                <div class="d-flex gap-2 align-items-center">
+                    <DxSpinEdit @bind-Value="@gridSize" Min="5" Max="50" Step="5" />
+                    <DxCheckBox @bind-Checked="@showGrid" Text="Show Grid" />
+                </div>
+            </DxFormLayoutItem>
+        </DxFormLayout>
+    </div>
 </div>
 
 <style>
@@ -115,6 +127,11 @@
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
 
+        /* Grid background for form builder */
+        .form-builder.show-grid {
+            background-image: linear-gradient(to right, rgba(220, 220, 220, 0.5) 1px, transparent 1px), linear-gradient(to bottom, rgba(220, 220, 220, 0.5) 1px, transparent 1px);
+        }
+
     /* Draggable items */
     .draggable {
         cursor: move;
@@ -137,6 +154,18 @@
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         margin-top: 10px;
         margin-right: 20px;
+    }
+
+    /* Form settings panel */
+    .form-settings-panel {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        background: #ffffff;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
     }
 
     /* Button group styling */
@@ -208,6 +237,10 @@
 @code {
     private ElementReference formBuilderDiv;
     private DotNetObjectReference<FormBuilder>? selfRef;
+
+    // Grid settings
+    private int gridSize = 20;
+    private bool showGrid = true;
 
     private List<FormElement> HtmlElements = new();
     private FormElement? draggingElement;
@@ -297,6 +330,9 @@
                 break;
         }
 
+        // Snap to grid after applying changes
+        SnapToGrid(selectedElement);
+
         // Update the HTML to include position information
         UpdateElementHtml(selectedElement);
 
@@ -361,14 +397,25 @@
         await OnHtmlChanged.InvokeAsync(formattedHtml.ToString());
     }
 
+    // New method to snap element coordinates to grid
+    private void SnapToGrid(FormElement element)
+    {
+        element.Left = Math.Round(element.Left / gridSize) * gridSize;
+        element.Top = Math.Round(element.Top / gridSize) * gridSize;
+    }
+
     [JSInvokable]
     public async Task HandleDrop(string elementType, double x, double y)
     {
+        // Adjust coordinates to snap to grid
+        double snappedX = Math.Round(x / gridSize) * gridSize;
+        double snappedY = Math.Round(y / gridSize) * gridSize;
+
         var element = new FormElement
             {
                 Id = Guid.NewGuid(),
-                Left = x,
-                Top = y,
+                Left = snappedX,
+                Top = snappedY,
                 ElementType = elementType
             };
 
@@ -408,8 +455,14 @@
     {
         if (draggingElement != null)
         {
+            // Update position based on mouse movement
             draggingElement.Left = clientX - offsetX;
             draggingElement.Top = clientY - offsetY;
+
+            // Optional: Snap to grid while dragging for visual feedback
+            // Uncomment the next line if you want real-time grid snapping during drag
+            // SnapToGrid(draggingElement);
+
             StateHasChanged();
         }
     }
@@ -419,8 +472,11 @@
     {
         if (draggingElement != null)
         {
+            // Snap to grid when mouse is released
+            SnapToGrid(draggingElement);
             NotifyHtmlChanged();
             draggingElement = null;
+            StateHasChanged();
         }
     }
 
