@@ -1,7 +1,7 @@
 ﻿@namespace fromBuilder.Components
 
 @code {
-    private List<string> Elements = new() { "TextBox", "CheckBox", "Button" };
+    private List<string> Elements = new() { "TextBox", "CheckBox", "Button", "Dropdown", "RadioButton", "TextArea"  };
 }
 
 <div class="toolbox">
@@ -14,7 +14,6 @@
         </div>
     }
 </div>
-
 <style>
     .toolbox {
         padding: 10px;
@@ -30,5 +29,4 @@
         cursor: grab;
         border: 1px solid #b2bec3;
     }
-
 </style>
