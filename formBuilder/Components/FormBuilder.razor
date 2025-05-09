@@ -335,6 +335,7 @@
         // Extract column classes and set spinner values
         ExtractColumnClasses(element.ColumnClasses);
 
+        // Retrieve and set properties based on element type
         if (element.ElementType == "TextBox")
         {
             textBoxPlaceholder = element.GetProperty<string>("Placeholder") ?? "";
@@ -375,7 +376,7 @@
 
     private void ExtractColumnClasses(string columnClasses)
     {
-        // Default values
+        // Reset to defaults
         columnXs = 12;
         columnSm = 12;
         columnMd = 6;
@@ -384,19 +385,24 @@
         marginBottom = 3;
 
         // Split the classes
-        var classes = columnClasses.Split(' ');
+        var classes = columnClasses.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
         foreach (var cssClass in classes)
         {
-            if (cssClass.StartsWith("col-xs-") || cssClass.StartsWith("col-"))
+            // Handle both 'col-' and 'col-xs-' formats for XS
+            if (cssClass.StartsWith("col-xs-"))
             {
-                string sizeValue = cssClass.StartsWith("col-xs-")
-                    ? cssClass.Substring(7)
-                    : cssClass.Substring(4);
-
-                if (int.TryParse(sizeValue, out int size))
+                if (int.TryParse(cssClass.Substring(7), out int size))
                     columnXs = size;
             }
+            else if (cssClass.StartsWith("col-") && !cssClass.StartsWith("col-sm-") &&
+                     !cssClass.StartsWith("col-md-") && !cssClass.StartsWith("col-lg-") &&
+                     !cssClass.StartsWith("col-xl-"))
+            {
+                if (int.TryParse(cssClass.Substring(4), out int size))
+                    columnXs = size;
+            }
+            // Handle other column sizes
             else if (cssClass.StartsWith("col-sm-"))
             {
                 if (int.TryParse(cssClass.Substring(7), out int size))
@@ -417,6 +423,7 @@
                 if (int.TryParse(cssClass.Substring(7), out int size))
                     columnXl = size;
             }
+            // Handle margin-bottom
             else if (cssClass.StartsWith("mb-"))
             {
                 if (int.TryParse(cssClass.Substring(3), out int mb))
@@ -498,29 +505,29 @@
         switch (element.ElementType)
         {
             case "TextBox":
-                var placeholder = element.GetProperty<string>("Placeholder");
-                var label = element.GetProperty<string>("Label");
+                var placeholder = element.GetProperty<string>("Placeholder") ?? "";
+                var label = element.GetProperty<string>("Label") ?? "";
                 var required = element.GetProperty<bool>("Required");
+                var inputType = element.GetProperty<string>("InputType") ?? "text";
 
                 var labelHtml = !string.IsNullOrEmpty(label) ? $"<label class='form-label'>{label}{(required ? " *" : "")}</label>" : "";
-                var inputType = element.GetProperty<string>("InputType") ?? "text";
                 element.Html = $"{labelHtml}<input type='{inputType}' class='form-control' placeholder='{placeholder}' {(required ? "required" : "")} />";
                 break;
 
             case "Button":
-                var text = element.GetProperty<string>("Text");
+                var text = element.GetProperty<string>("Text") ?? "Click";
                 var type = element.GetProperty<string>("ButtonType")?.ToLower() ?? "primary";
                 element.Html = $"<button class='btn btn-{type}'>{text}</button>";
                 break;
 
             case "CheckBox":
-                var cbLabel = element.GetProperty<string>("Label");
+                var cbLabel = element.GetProperty<string>("Label") ?? "";
                 var isChecked = element.GetProperty<bool>("DefaultChecked");
                 element.Html = $"<div class='form-check'><input type='checkbox' class='form-check-input' {(isChecked ? "checked" : "")} /> <label class='form-check-label'>{cbLabel}</label></div>";
                 break;
 
             case "Dropdown":
-                var dropdownLabel = element.GetProperty<string>("Label");
+                var dropdownLabel = element.GetProperty<string>("Label") ?? "";
                 var dropdownOptions = element.GetProperty<List<string>>("Options") ?? new();
                 var labelDropdownHtml = !string.IsNullOrEmpty(dropdownLabel) ? $"<label class='form-label'>{dropdownLabel}</label>" : "";
                 var optionsHtml = string.Join("", dropdownOptions.Select(opt => $"<option>{opt}</option>"));
@@ -528,7 +535,7 @@
                 break;
 
             case "RadioButton":
-                var radioLabel = element.GetProperty<string>("Label");
+                var radioLabel = element.GetProperty<string>("Label") ?? "";
                 var radioOptions = element.GetProperty<List<string>>("Options") ?? new();
                 var labelRadioHtml = !string.IsNullOrEmpty(radioLabel) ? $"<label class='form-label'>{radioLabel}</label>" : "";
                 var radiosHtml = string.Join("", radioOptions.Select(opt =>
@@ -537,8 +544,8 @@
                 break;
 
             case "TextArea":
-                var taLabel = element.GetProperty<string>("Label");
-                var taPlaceholder = element.GetProperty<string>("Placeholder");
+                var taLabel = element.GetProperty<string>("Label") ?? "";
+                var taPlaceholder = element.GetProperty<string>("Placeholder") ?? "";
                 var labelTaHtml = !string.IsNullOrEmpty(taLabel) ? $"<label class='form-label'>{taLabel}</label>" : "";
                 element.Html = $"{labelTaHtml}<textarea class='form-control' placeholder='{taPlaceholder}' rows='4'></textarea>";
                 break;
@@ -667,8 +674,29 @@
 
         public T GetProperty<T>(string key)
         {
-            if (Properties.TryGetValue(key, out var value) && value is T typed)
-                return typed;
+            if (Properties.TryGetValue(key, out var value))
+            {
+                // Better type checking and conversion
+                if (value is T typedValue)
+                {
+                    return typedValue;
+                }
+                // Handle type conversion attempts for common types
+                else if (typeof(T) == typeof(string) && value != null)
+                {
+                    return (T)(object)value.ToString();
+                }
+                else if (typeof(T) == typeof(bool) && value is string boolStr)
+                {
+                    if (bool.TryParse(boolStr, out bool boolResult))
+                        return (T)(object)boolResult;
+                }
+                else if (typeof(T) == typeof(int) && value is string intStr)
+                {
+                    if (int.TryParse(intStr, out int intResult))
+                        return (T)(object)intResult;
+                }
+            }
             return default!;
         }
 
