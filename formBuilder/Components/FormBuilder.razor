@@ -11,7 +11,7 @@
         @foreach (var element in HtmlElements)
         {
             <div class="draggable @(selectedElement?.Id == element.Id ? "selected" : "")"
-                 style="position:absolute; left:@element.LeftPx; top:@element.TopPx;"
+                 style="position:relative; left:@element.LeftPx; top:@element.TopPx;"
                  @onmousedown="(e) => StartDrag(element, e)"
                  @ondblclick:stopPropagation="true"
                  @ondblclick="() => SelectElement(element)"
@@ -491,7 +491,7 @@
         foreach (var element in HtmlElements)
         {
             // Create a wrapper div with position information and element metadata
-            formattedHtml.AppendLine($"<div class='form-element {element.ElementType.ToLower()}' data-element-id='{element.Id}' style='position:absolute; left:{element.Left}px; top:{element.Top}px;'>");
+            formattedHtml.AppendLine($"<div class='form-element {element.ElementType.ToLower()}' data-element-id='{element.Id}' style='position:relative; left:{element.Left}px; top:{element.Top}px; width: 100%;'>");
             formattedHtml.AppendLine($"  {element.Html}");
             formattedHtml.AppendLine("</div>");
         }
