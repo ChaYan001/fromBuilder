@@ -5,20 +5,23 @@
 <div class="form-builder-container">
     <div @ref="formBuilderDiv"
          class="form-builder @(showGrid ? "show-grid" : "")"
-         style="background-size: @(gridSize)px @(gridSize)px;"
          ondrop="onDropHandler(event)"
          ondragover="event.preventDefault()">
-        @foreach (var element in HtmlElements)
-        {
-            <div class="draggable @(selectedElement?.Id == element.Id ? "selected" : "")"
-                 style="position:relative; left:@element.LeftPx; top:@element.TopPx;"
-                 @onmousedown="(e) => StartDrag(element, e)"
-                 @ondblclick:stopPropagation="true"
-                 @ondblclick="() => SelectElement(element)"
-                 @key="element.Id">
-                @((MarkupString)element.Html)
+        <div class="container-fluid">
+            <div class="row">
+                @foreach (var element in HtmlElements)
+                {
+                    <div class="@element.ColumnClasses @(selectedElement?.Id == element.Id ? "selected-element" : "")"
+                         @onclick:stopPropagation="true"
+                         @onclick="() => SelectElement(element)"
+                         @ondblclick:stopPropagation="true"
+                         @ondblclick="() => SelectElement(element)"
+                         @key="element.Id">
+                        @((MarkupString)element.Html)
+                    </div>
+                }
             </div>
-        }
+        </div>
     </div>
 
     @if (selectedElement != null && isPropertiesPanelVisible)
@@ -34,11 +37,35 @@
                         <DxTextBox Text="@selectedElement.ElementType" ReadOnly="true" />
                     </DxFormLayoutItem>
 
-                    <DxFormLayoutItem Caption="Position" ColSpanMd="12">
-                        <div class="d-flex gap-2">
-                            <DxSpinEdit @bind-Value="@selectedElement.Left" Caption="X" />
-                            <DxSpinEdit @bind-Value="@selectedElement.Top" Caption="Y" />
+                    <DxFormLayoutItem Caption="Bootstrap Column Sizes" ColSpanMd="12">
+                        <div class="column-size-controls">
+                            <div class="d-flex flex-wrap gap-2 mb-3">
+                                <div>
+                                    <label class="form-label">XS</label>
+                                    <DxSpinEdit @bind-Value="@columnXs" Min="1" Max="12" />
+                                </div>
+                                <div>
+                                    <label class="form-label">SM</label>
+                                    <DxSpinEdit @bind-Value="@columnSm" Min="1" Max="12" />
+                                </div>
+                                <div>
+                                    <label class="form-label">MD</label>
+                                    <DxSpinEdit @bind-Value="@columnMd" Min="1" Max="12" />
+                                </div>
+                                <div>
+                                    <label class="form-label">LG</label>
+                                    <DxSpinEdit @bind-Value="@columnLg" Min="1" Max="12" />
+                                </div>
+                                <div>
+                                    <label class="form-label">XL</label>
+                                    <DxSpinEdit @bind-Value="@columnXl" Min="1" Max="12" />
+                                </div>
+                            </div>
                         </div>
+                    </DxFormLayoutItem>
+
+                    <DxFormLayoutItem Caption="Margin Bottom" ColSpanMd="12">
+                        <DxSpinEdit @bind-Value="@marginBottom" Min="0" Max="5" />
                     </DxFormLayoutItem>
 
                     @* TextBox Properties *@
@@ -50,16 +77,12 @@
                         <DxFormLayoutItem Caption="Placeholder" ColSpanMd="12">
                             <DxTextBox @bind-Text="@textBoxPlaceholder" />
                         </DxFormLayoutItem>
-                        <DxFormLayoutItem Caption="Width (px)" ColSpanMd="12">
-                            <DxSpinEdit @bind-Value="@textBoxWidth" />
-                        </DxFormLayoutItem>
                         <DxFormLayoutItem Caption="Required" ColSpanMd="12">
                             <DxCheckBox @bind-Checked="@textBoxRequired" />
                         </DxFormLayoutItem>
                         <DxFormLayoutItem Caption="Input Type" ColSpanMd="12">
                             <DxComboBox Data="@inputTypes" @bind-Value="@textBoxInputType" />
                         </DxFormLayoutItem>
-
                     }
                     @* Button Properties *@
                     else if (selectedElement.ElementType == "Button")
@@ -92,25 +115,22 @@
                     }
                     else if (selectedElement.ElementType == "RadioButton")
                     {
-                    <DxFormLayoutItem Caption="Label" ColSpanMd="12">
-                        <DxTextBox @bind-Text="@radioLabel" />
-                    </DxFormLayoutItem>
-                    <DxFormLayoutItem Caption="Options (comma-separated)" ColSpanMd="12">
-                        <DxTextBox @bind-Text="@radioOptionsRaw" />
-                    </DxFormLayoutItem>
+                        <DxFormLayoutItem Caption="Label" ColSpanMd="12">
+                            <DxTextBox @bind-Text="@radioLabel" />
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem Caption="Options (comma-separated)" ColSpanMd="12">
+                            <DxTextBox @bind-Text="@radioOptionsRaw" />
+                        </DxFormLayoutItem>
                     }
                     else if (selectedElement.ElementType == "TextArea")
                     {
-                    <DxFormLayoutItem Caption="Label" ColSpanMd="12">
-                        <DxTextBox @bind-Text="@textAreaLabel" />
-                    </DxFormLayoutItem>
-                    <DxFormLayoutItem Caption="Placeholder" ColSpanMd="12">
-                        <DxTextBox @bind-Text="@textAreaPlaceholder" />
-                    </DxFormLayoutItem>
+                        <DxFormLayoutItem Caption="Label" ColSpanMd="12">
+                            <DxTextBox @bind-Text="@textAreaLabel" />
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem Caption="Placeholder" ColSpanMd="12">
+                            <DxTextBox @bind-Text="@textAreaPlaceholder" />
+                        </DxFormLayoutItem>
                     }
-
-
-
                 </DxFormLayout>
 
                 <div class="button-group">
@@ -126,8 +146,7 @@
         <DxFormLayout>
             <DxFormLayoutItem Caption="Grid Settings" ColSpanMd="12">
                 <div class="d-flex gap-2 align-items-center">
-                    <DxSpinEdit @bind-Value="@gridSize" Min="5" Max="50" Step="5" />
-                    <DxCheckBox @bind-Checked="@showGrid" Text="Show Grid" />
+                    <DxCheckBox @bind-Checked="@showGrid" Text="Show Bootstrap Grid" />
                 </div>
             </DxFormLayoutItem>
         </DxFormLayout>
@@ -156,20 +175,24 @@
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
 
-        .form-builder.show-grid {
-            background-image: linear-gradient(to right, rgba(220, 220, 220, 0.5) 1px, transparent 1px), linear-gradient(to bottom, rgba(220, 220, 220, 0.5) 1px, transparent 1px);
+        .form-builder.show-grid .row {
+            background-color: rgba(220, 220, 220, 0.2);
         }
 
-    /* Draggable elements */
-    .draggable {
-        cursor: move;
+        .form-builder.show-grid [class*="col-"] {
+            border: 1px dashed rgba(86, 61, 124, 0.2);
+            padding-top: 10px;
+            padding-bottom: 10px;
+            background-color: rgba(86, 61, 124, 0.15);
+        }
+
+    /* Selected element styles */
+    .selected-element {
+        border: 2px solid #007bff !important;
         padding: 10px;
-        border: 1px solid transparent;
+        border-radius: 4px;
         transition: border 0.3s ease;
     }
-        .draggable.selected {
-            border: 2px solid #007bff;
-        }
 
     /* Properties Panel Styles */
     .properties-panel,
@@ -250,15 +273,12 @@
         margin-top: 20px;
     }
 
-    /* Form Grid */
-    .form-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 10px;
-        padding: 20px;
+    /* Column size controls */
+    .column-size-controls label {
+        font-size: 0.8rem;
+        font-weight: bold;
+        margin-bottom: 0;
     }
-
-
 </style>
 
 
@@ -267,17 +287,21 @@
     private DotNetObjectReference<FormBuilder>? selfRef;
 
     // Grid settings
-    private int gridSize = 20;
     private bool showGrid = true;
 
     private List<FormElement> HtmlElements = new();
-    private FormElement? draggingElement;
     private FormElement? selectedElement;
-    private double offsetX, offsetY;
     private bool isPropertiesPanelVisible = false;
 
+    // Column size properties
+    private int columnXs = 12;
+    private int columnSm = 12;
+    private int columnMd = 6;
+    private int columnLg = 4;
+    private int columnXl = 3;
+    private int marginBottom = 3;
+
     private string textBoxPlaceholder = "";
-    private double textBoxWidth = 200;
     private string textBoxLabel = "";
     private bool textBoxRequired = false;
 
@@ -288,7 +312,7 @@
     private bool checkboxDefaultChecked = false;
 
     private string dropdownLabel = "";
-    private string dropdownOptionsRaw = ""; 
+    private string dropdownOptionsRaw = "";
 
     private string radioLabel = "";
     private string radioOptionsRaw = "";
@@ -296,38 +320,27 @@
     private string textAreaLabel = "";
     private string textAreaPlaceholder = "";
 
-
     private string textBoxInputType = "text";
     private List<string> inputTypes = new() { "text", "number", "email", "password", "date", "tel", "url" };
-
 
     private List<string> buttonTypes = new() { "Primary", "Secondary", "Success", "Danger", "Warning", "Info" };
 
     [Parameter] public EventCallback<string> OnHtmlChanged { get; set; }
-
-    private void StartDrag(FormElement element, MouseEventArgs e)
-    {
-        draggingElement = element;
-        offsetX = e.ClientX - element.Left;
-        offsetY = e.ClientY - element.Top;
-        _ = JSRuntime.InvokeVoidAsync("enableFormBuilderDragging", selfRef);
-    }
-
-    private void HandleVisibilityChanged(bool value) => isPropertiesPanelVisible = value;
 
     private void SelectElement(FormElement element)
     {
         selectedElement = element;
         isPropertiesPanelVisible = true;
 
+        // Extract column classes and set spinner values
+        ExtractColumnClasses(element.ColumnClasses);
+
         if (element.ElementType == "TextBox")
         {
             textBoxPlaceholder = element.GetProperty<string>("Placeholder") ?? "";
-            textBoxWidth = element.GetProperty<double>("Width");
             textBoxLabel = element.GetProperty<string>("Label") ?? "";
             textBoxRequired = element.GetProperty<bool>("Required");
             textBoxInputType = element.GetProperty<string>("InputType") ?? "text";
-
         }
         else if (element.ElementType == "Button")
         {
@@ -357,20 +370,77 @@
             textAreaPlaceholder = element.GetProperty<string>("Placeholder") ?? "";
         }
 
-
-
         StateHasChanged();
+    }
+
+    private void ExtractColumnClasses(string columnClasses)
+    {
+        // Default values
+        columnXs = 12;
+        columnSm = 12;
+        columnMd = 6;
+        columnLg = 4;
+        columnXl = 3;
+        marginBottom = 3;
+
+        // Split the classes
+        var classes = columnClasses.Split(' ');
+
+        foreach (var cssClass in classes)
+        {
+            if (cssClass.StartsWith("col-xs-") || cssClass.StartsWith("col-"))
+            {
+                string sizeValue = cssClass.StartsWith("col-xs-")
+                    ? cssClass.Substring(7)
+                    : cssClass.Substring(4);
+
+                if (int.TryParse(sizeValue, out int size))
+                    columnXs = size;
+            }
+            else if (cssClass.StartsWith("col-sm-"))
+            {
+                if (int.TryParse(cssClass.Substring(7), out int size))
+                    columnSm = size;
+            }
+            else if (cssClass.StartsWith("col-md-"))
+            {
+                if (int.TryParse(cssClass.Substring(7), out int size))
+                    columnMd = size;
+            }
+            else if (cssClass.StartsWith("col-lg-"))
+            {
+                if (int.TryParse(cssClass.Substring(7), out int size))
+                    columnLg = size;
+            }
+            else if (cssClass.StartsWith("col-xl-"))
+            {
+                if (int.TryParse(cssClass.Substring(7), out int size))
+                    columnXl = size;
+            }
+            else if (cssClass.StartsWith("mb-"))
+            {
+                if (int.TryParse(cssClass.Substring(3), out int mb))
+                    marginBottom = mb;
+            }
+        }
+    }
+
+    private string BuildColumnClasses()
+    {
+        return $"col-{columnXs} col-sm-{columnSm} col-md-{columnMd} col-lg-{columnLg} col-xl-{columnXl} mb-{marginBottom}";
     }
 
     private void ApplyChanges()
     {
         if (selectedElement == null) return;
 
+        // Update column classes
+        selectedElement.ColumnClasses = BuildColumnClasses();
+
         switch (selectedElement.ElementType)
         {
             case "TextBox":
                 selectedElement.SetProperty("Placeholder", textBoxPlaceholder);
-                selectedElement.SetProperty("Width", textBoxWidth);
                 selectedElement.SetProperty("Label", textBoxLabel);
                 selectedElement.SetProperty("Required", textBoxRequired);
                 selectedElement.SetProperty("InputType", textBoxInputType);
@@ -392,7 +462,6 @@
                 selectedElement.SetProperty("Options", options);
                 break;
 
-
             case "RadioButton":
                 selectedElement.SetProperty("Label", radioLabel);
                 var radioOpts = radioOptionsRaw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
@@ -403,20 +472,16 @@
                 selectedElement.SetProperty("Label", textAreaLabel);
                 selectedElement.SetProperty("Placeholder", textAreaPlaceholder);
                 break;
-
-
         }
 
-        // Snap to grid after applying changes
-        SnapToGrid(selectedElement);
-
-        // Update the HTML to include position information
+        // Update the HTML
         UpdateElementHtml(selectedElement);
 
         // Notify parent about HTML changes
         NotifyHtmlChanged();
         StateHasChanged();
     }
+
     private void DeleteElement()
     {
         if (selectedElement == null) return;
@@ -434,13 +499,12 @@
         {
             case "TextBox":
                 var placeholder = element.GetProperty<string>("Placeholder");
-                var width = element.GetProperty<double>("Width");
                 var label = element.GetProperty<string>("Label");
                 var required = element.GetProperty<bool>("Required");
 
-                var labelHtml = !string.IsNullOrEmpty(label) ? $"<label>{label}{(required ? " *" : "")}</label><br/>" : "";
+                var labelHtml = !string.IsNullOrEmpty(label) ? $"<label class='form-label'>{label}{(required ? " *" : "")}</label>" : "";
                 var inputType = element.GetProperty<string>("InputType") ?? "text";
-                element.Html = $"{labelHtml}<input type='{inputType}' class='form-control' placeholder='{placeholder}' style='width: {width}px;' {(required ? "required" : "")} />";
+                element.Html = $"{labelHtml}<input type='{inputType}' class='form-control' placeholder='{placeholder}' {(required ? "required" : "")} />";
                 break;
 
             case "Button":
@@ -458,127 +522,118 @@
             case "Dropdown":
                 var dropdownLabel = element.GetProperty<string>("Label");
                 var dropdownOptions = element.GetProperty<List<string>>("Options") ?? new();
-                var labelDropdownHtml = !string.IsNullOrEmpty(dropdownLabel) ? $"<label>{dropdownLabel}</label><br/>" : "";
+                var labelDropdownHtml = !string.IsNullOrEmpty(dropdownLabel) ? $"<label class='form-label'>{dropdownLabel}</label>" : "";
                 var optionsHtml = string.Join("", dropdownOptions.Select(opt => $"<option>{opt}</option>"));
-                element.Html = $"{labelDropdownHtml}<select class='form-control'>{optionsHtml}</select>";
+                element.Html = $"{labelDropdownHtml}<select class='form-select'>{optionsHtml}</select>";
                 break;
 
             case "RadioButton":
                 var radioLabel = element.GetProperty<string>("Label");
                 var radioOptions = element.GetProperty<List<string>>("Options") ?? new();
-                var labelRadioHtml = !string.IsNullOrEmpty(radioLabel) ? $"<label>{radioLabel}</label><br/>" : "";
-                var radiosHtml = string.Join("<br/>", radioOptions.Select(opt => $"<input type='radio' name='{radioLabel}' value='{opt}' /> {opt}"));
+                var labelRadioHtml = !string.IsNullOrEmpty(radioLabel) ? $"<label class='form-label'>{radioLabel}</label>" : "";
+                var radiosHtml = string.Join("", radioOptions.Select(opt =>
+                    $"<div class='form-check'><input type='radio' class='form-check-input' name='{radioLabel}' value='{opt}' /><label class='form-check-label'>{opt}</label></div>"));
                 element.Html = $"{labelRadioHtml}{radiosHtml}";
                 break;
 
             case "TextArea":
                 var taLabel = element.GetProperty<string>("Label");
                 var taPlaceholder = element.GetProperty<string>("Placeholder");
-                var labelTaHtml = !string.IsNullOrEmpty(taLabel) ? $"<label>{taLabel}</label><br/>" : "";
+                var labelTaHtml = !string.IsNullOrEmpty(taLabel) ? $"<label class='form-label'>{taLabel}</label>" : "";
                 element.Html = $"{labelTaHtml}<textarea class='form-control' placeholder='{taPlaceholder}' rows='4'></textarea>";
                 break;
-
-
-
         }
     }
 
     private async Task NotifyHtmlChanged()
     {
-        // Create formatted output with position information for each container
+        // Create formatted output with bootstrap classes
         var formattedHtml = new System.Text.StringBuilder();
+        formattedHtml.AppendLine("<div class='container-fluid'>");
+        formattedHtml.AppendLine("  <div class='row'>");
 
         foreach (var element in HtmlElements)
         {
-            // Create a wrapper div with position information and element metadata
-            formattedHtml.AppendLine($"<div class='form-element {element.ElementType.ToLower()}' data-element-id='{element.Id}' style='position:relative; left:{element.Left}px; top:{element.Top}px; width: 100%;'>");
-            formattedHtml.AppendLine($"  {element.Html}");
-            formattedHtml.AppendLine("</div>");
+            // Create a div with bootstrap grid classes
+            formattedHtml.AppendLine($"    <div class='{element.ColumnClasses}' data-element-id='{element.Id}'>");
+            formattedHtml.AppendLine($"      {element.Html}");
+            formattedHtml.AppendLine("    </div>");
         }
 
-        await OnHtmlChanged.InvokeAsync(formattedHtml.ToString());
-    }
+        formattedHtml.AppendLine("  </div>");
+        formattedHtml.AppendLine("</div>");
 
-    // New method to snap element coordinates to grid
-    private void SnapToGrid(FormElement element)
-    {
-        element.Left = Math.Round(element.Left / gridSize) * gridSize;
-        element.Top = Math.Round(element.Top / gridSize) * gridSize;
+        await OnHtmlChanged.InvokeAsync(formattedHtml.ToString());
     }
 
     [JSInvokable]
     public async Task HandleDrop(string elementType, double x, double y)
     {
-        // Adjust coordinates to snap to grid
-        double snappedX = Math.Round(x / gridSize) * gridSize;
-        double snappedY = Math.Round(y / gridSize) * gridSize;
+        // Create default column classes for a new element
+        string columnClasses = "col-12 col-sm-12 col-md-6 col-lg-4 col-xl-3 mb-3";
 
         var element = new FormElement
             {
                 Id = Guid.NewGuid(),
-                Left = snappedX,
-                Top = snappedY,
-                ElementType = elementType
+                ElementType = elementType,
+                ColumnClasses = columnClasses
             };
 
         switch (elementType)
         {
             case "TextBox":
                 element.SetProperty("Placeholder", "Enter text here");
-                element.SetProperty("Width", 200.0);
-                element.SetProperty("Label", "");
+                element.SetProperty("Label", "Text Field");
                 element.SetProperty("Required", false);
                 element.SetProperty("InputType", "text");
-                element.Html = "<input type='text' class='form-control' placeholder='Enter text here' />";
+                element.Html = "<label class='form-label'>Text Field</label><input type='text' class='form-control' placeholder='Enter text here' />";
                 break;
 
             case "Button":
-                element.SetProperty("Text", "Click");
+                element.SetProperty("Text", "Click Me");
                 element.SetProperty("ButtonType", "Primary");
-                element.Html = "<button class='btn btn-primary'>Click</button>";
+                element.Html = "<button class='btn btn-primary'>Click Me</button>";
                 break;
 
             case "CheckBox":
-                element.SetProperty("Label", "Checkbox");
+                element.SetProperty("Label", "Checkbox Option");
                 element.SetProperty("DefaultChecked", false);
-                element.Html = "<div class='form-check'><input type='checkbox' class='form-check-input' /> <label class='form-check-label'>Checkbox</label></div>";
+                element.Html = "<div class='form-check'><input type='checkbox' class='form-check-input' /> <label class='form-check-label'>Checkbox Option</label></div>";
                 break;
 
             case "Dropdown":
-                element.SetProperty("Label", "Dropdown");
-                element.SetProperty("Options", "Option 1,Option 2,Option 3");
+                element.SetProperty("Label", "Select an Option");
+                element.SetProperty("Options", new List<string> { "Option 1", "Option 2", "Option 3" });
                 element.Html = @"
-            <label class='form-label'>Dropdown</label>
-            <select class='form-select'>
-                <option>Option 1</option>
-                <option>Option 2</option>
-                <option>Option 3</option>
-            </select>";
+                    <label class='form-label'>Select an Option</label>
+                    <select class='form-select'>
+                        <option>Option 1</option>
+                        <option>Option 2</option>
+                        <option>Option 3</option>
+                    </select>";
                 break;
 
             case "RadioButton":
                 element.SetProperty("Label", "Choose an option");
-                element.SetProperty("Options", "Option A,Option B");
+                element.SetProperty("Options", new List<string> { "Option A", "Option B" });
                 element.Html = @"
-            <label class='form-label'>Choose an option</label>
-            <div class='form-check'>
-                <input type='radio' name='radioGroup' class='form-check-input' />
-                <label class='form-check-label'>Option A</label>
-            </div>
-            <div class='form-check'>
-                <input type='radio' name='radioGroup' class='form-check-input' />
-                <label class='form-check-label'>Option B</label>
-            </div>";
+                <label class='form-label'>Choose an option</label>
+                <div class='form-check'>
+                    <input type='radio' name='radioGroup' class='form-check-input' value='Option A' />
+                    <label class='form-check-label'>Option A</label>
+                </div>
+                <div class='form-check'>
+                    <input type='radio' name='radioGroup' class='form-check-input' value='Option B' />
+                    <label class='form-check-label'>Option B</label>
+                </div>";
                 break;
 
             case "TextArea":
                 element.SetProperty("Label", "Message");
                 element.SetProperty("Placeholder", "Enter your message here");
-                element.SetProperty("Rows", 4);
-                element.SetProperty("Cols", 50);
                 element.Html = @"
-            <label class='form-label'>Message</label>
-            <textarea class='form-control' rows='4' placeholder='Enter your message here'></textarea>";
+                <label class='form-label'>Message</label>
+                <textarea class='form-control' rows='4' placeholder='Enter your message here'></textarea>";
                 break;
         }
 
@@ -586,37 +641,6 @@
         await NotifyHtmlChanged();
         SelectElement(element);
         StateHasChanged();
-    }
-
-
-    [JSInvokable]
-    public void OnMouseMove(double clientX, double clientY)
-    {
-        if (draggingElement != null)
-        {
-            // Update position based on mouse movement
-            draggingElement.Left = clientX - offsetX;
-            draggingElement.Top = clientY - offsetY;
-
-            // Optional: Snap to grid while dragging for visual feedback
-            // Uncomment the next line if you want real-time grid snapping during drag
-            // SnapToGrid(draggingElement);
-
-            StateHasChanged();
-        }
-    }
-
-    [JSInvokable]
-    public void OnMouseUp()
-    {
-        if (draggingElement != null)
-        {
-            // Snap to grid when mouse is released
-            SnapToGrid(draggingElement);
-            NotifyHtmlChanged();
-            draggingElement = null;
-            StateHasChanged();
-        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -637,13 +661,9 @@
     {
         public Guid Id { get; set; }
         public string Html { get; set; } = "";
-        public double Left { get; set; }
-        public double Top { get; set; }
         public string ElementType { get; set; } = "";
+        public string ColumnClasses { get; set; } = "col-12 col-sm-12 col-md-6 col-lg-4 col-xl-3 mb-3";
         private Dictionary<string, object> Properties { get; set; } = new();
-
-        public string LeftPx => $"{Left}px";
-        public string TopPx => $"{Top}px";
 
         public T GetProperty<T>(string key)
         {
