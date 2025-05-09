@@ -1,32 +1,78 @@
 ﻿@namespace fromBuilder.Components
-
 @code {
-    private List<string> Elements = new() { "TextBox", "CheckBox", "Button", "Dropdown", "RadioButton", "TextArea"  };
+    private List<string> Elements = new() { "TextBox", "CheckBox", "Button", "Dropdown", "RadioButton", "TextArea" };
+    private Dictionary<string, string> ElementIcons = new()
+    {
+        { "TextBox", "fa-font" },
+        { "CheckBox", "fa-check-square" },
+        { "Button", "fa-square" },
+        { "Dropdown", "fa-caret-down" },
+        { "RadioButton", "fa-dot-circle" },
+        { "TextArea", "fa-align-left" }
+    };
 }
 
 <div class="toolbox">
+    <h3 class="toolbox-title">Component Toolbox</h3>
     @foreach (var element in Elements)
     {
         <div class="toolbox-item"
              draggable="true"
              ondragstart="event.dataTransfer.setData('text/plain', '@element')">
-            @element
+            <i class="fas @ElementIcons[element]"></i>
+            <span>@element</span>
         </div>
     }
 </div>
+
+<!-- Font Awesome CDN -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
 <style>
     .toolbox {
-        padding: 10px;
+        padding: 16px;
         background: #f8f8f8;
         height: 100%;
+        border-radius: 6px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+
+    .toolbox-title {
+        margin-top: 0;
+        margin-bottom: 16px;
+        font-size: 16px;
+        color: #333;
+        border-bottom: 1px solid #e1e1e1;
+        padding-bottom: 8px;
     }
 
     .toolbox-item {
-        padding: 8px;
-        margin: 5px 0;
-        background: #dfe6e9;
+        padding: 10px;
+        margin: 8px 0;
+        background: #ffffff;
         border-radius: 4px;
         cursor: grab;
-        border: 1px solid #b2bec3;
+        border: 1px solid #dcdde1;
+        display: flex;
+        align-items: center;
+        transition: all 0.2s ease;
     }
+
+        .toolbox-item:hover {
+            background: #f1f2f6;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .toolbox-item i {
+            margin-right: 12px;
+            font-size: 16px;
+            color: #3498db;
+            width: 20px;
+            text-align: center;
+        }
+
+        .toolbox-item span {
+            flex-grow: 1;
+        }
 </style>
