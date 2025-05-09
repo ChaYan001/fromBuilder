@@ -81,6 +81,36 @@
                             <DxCheckBox @bind-Checked="@checkboxDefaultChecked" />
                         </DxFormLayoutItem>
                     }
+                    else if (selectedElement.ElementType == "Dropdown")
+                    {
+                        <DxFormLayoutItem Caption="Label" ColSpanMd="12">
+                            <DxTextBox @bind-Text="@dropdownLabel" />
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem Caption="Options (comma-separated)" ColSpanMd="12">
+                            <DxTextBox @bind-Text="@dropdownOptionsRaw" />
+                        </DxFormLayoutItem>
+                    }
+                    else if (selectedElement.ElementType == "RadioButton")
+                    {
+                    <DxFormLayoutItem Caption="Label" ColSpanMd="12">
+                        <DxTextBox @bind-Text="@radioLabel" />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="Options (comma-separated)" ColSpanMd="12">
+                        <DxTextBox @bind-Text="@radioOptionsRaw" />
+                    </DxFormLayoutItem>
+                    }
+                    else if (selectedElement.ElementType == "TextArea")
+                    {
+                    <DxFormLayoutItem Caption="Label" ColSpanMd="12">
+                        <DxTextBox @bind-Text="@textAreaLabel" />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="Placeholder" ColSpanMd="12">
+                        <DxTextBox @bind-Text="@textAreaPlaceholder" />
+                    </DxFormLayoutItem>
+                    }
+
+
+
                 </DxFormLayout>
 
                 <div class="button-group">
@@ -105,17 +135,16 @@
 </div>
 
 <style>
-    /* Form builder container */
+    /* General layout and container styles */
     .form-builder-container {
-        height: 100%;
-        position: relative;
         display: flex;
         flex-direction: row;
         padding: 20px;
         background-color: #f4f7fa;
+        height: 100%;
+        position: relative;
     }
 
-    /* Form builder with dashed border */
     .form-builder {
         height: 100%;
         width: 100%;
@@ -126,93 +155,32 @@
         position: relative;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
-    /* Grid background for form builder */
-    .form-builder.show-grid {
-        background-image: linear-gradient(to right, rgba(220, 220, 220, 0.5) 1px, transparent 1px), linear-gradient(to bottom, rgba(220, 220, 220, 0.5) 1px, transparent 1px);
-    }
 
-    /* Draggable items */
+        .form-builder.show-grid {
+            background-image: linear-gradient(to right, rgba(220, 220, 220, 0.5) 1px, transparent 1px), linear-gradient(to bottom, rgba(220, 220, 220, 0.5) 1px, transparent 1px);
+        }
+
+    /* Draggable elements */
     .draggable {
         cursor: move;
         padding: 10px;
         border: 1px solid transparent;
         transition: border 0.3s ease;
     }
+        .draggable.selected {
+            border: 2px solid #007bff;
+        }
 
-    /* Selected draggable item */
-    .draggable.selected {
-        border: 2px solid #007bff;
-    }
-
-    /* Properties panel styles */
-    .properties-panel {
+    /* Properties Panel Styles */
+    .properties-panel,
+    .properties-panel-flyout {
         padding: 20px;
         background: #ffffff;
         border-radius: 8px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         margin-top: 10px;
-        margin-right: 20px;
     }
 
-    /* Form settings panel */
-    .form-settings-panel {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: #ffffff;
-        padding: 15px;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        z-index: 1000;
-    }
-
-    /* Button group styling */
-    .button-group {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 20px;
-    }
-
-    /* Save button */
-    .btn-save {
-        background-color: #007bff;
-        color: white;
-        border-radius: 4px;
-        padding: 10px 20px;
-        transition: background-color 0.3s ease;
-    }
-
-        .btn-save:hover {
-            background-color: #0056b3;
-        }
-
-    /* Delete button */
-    .btn-delete {
-        background-color: #dc3545;
-        color: white;
-        border-radius: 4px;
-        padding: 10px 20px;
-        transition: background-color 0.3s ease;
-    }
-
-        .btn-delete:hover {
-            background-color: #c82333;
-        }
-
-    /* Close button */
-    .btn-close {
-        background-color: #6c757d;
-        color: white;
-        border-radius: 4px;
-        padding: 10px 20px;
-        transition: background-color 0.3s ease;
-    }
-
-        .btn-close:hover {
-            background-color: #5a6268;
-        }
-
-    /* Properties panel flyout (popup) styles */
     .properties-panel-flyout {
         position: fixed;
         top: 0;
@@ -228,6 +196,68 @@
         overflow-y: auto;
         transition: transform 0.3s ease-in-out;
     }
+
+    /* Button Styles */
+    .btn-save, .btn-delete, .btn-close {
+        padding: 10px 20px;
+        border-radius: 4px;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn-save {
+        background-color: #007bff;
+        color: white;
+    }
+
+        .btn-save:hover {
+            background-color: #0056b3;
+        }
+
+    .btn-delete {
+        background-color: #dc3545;
+        color: white;
+    }
+
+        .btn-delete:hover {
+            background-color: #c82333;
+        }
+
+    .btn-close {
+        background-color: #6c757d;
+        color: white;
+    }
+
+        .btn-close:hover {
+            background-color: #5a6268;
+        }
+
+    /* Form Settings Panel */
+    .form-settings-panel {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        background: #ffffff;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+    }
+
+    /* Layout for the button group */
+    .button-group {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+    }
+
+    /* Form Grid */
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 10px;
+        padding: 20px;
+    }
+
 
 </style>
 
@@ -256,6 +286,16 @@
 
     private string checkboxLabel = "";
     private bool checkboxDefaultChecked = false;
+
+    private string dropdownLabel = "";
+    private string dropdownOptionsRaw = ""; 
+
+    private string radioLabel = "";
+    private string radioOptionsRaw = "";
+
+    private string textAreaLabel = "";
+    private string textAreaPlaceholder = "";
+
 
     private string textBoxInputType = "text";
     private List<string> inputTypes = new() { "text", "number", "email", "password", "date", "tel", "url" };
@@ -299,6 +339,25 @@
             checkboxLabel = element.GetProperty<string>("Label") ?? "";
             checkboxDefaultChecked = element.GetProperty<bool>("DefaultChecked");
         }
+        else if (element.ElementType == "Dropdown")
+        {
+            dropdownLabel = element.GetProperty<string>("Label") ?? "";
+            var options = element.GetProperty<List<string>>("Options") ?? new();
+            dropdownOptionsRaw = string.Join(", ", options);
+        }
+        else if (element.ElementType == "RadioButton")
+        {
+            radioLabel = element.GetProperty<string>("Label") ?? "";
+            var options = element.GetProperty<List<string>>("Options") ?? new();
+            radioOptionsRaw = string.Join(", ", options);
+        }
+        else if (element.ElementType == "TextArea")
+        {
+            textAreaLabel = element.GetProperty<string>("Label") ?? "";
+            textAreaPlaceholder = element.GetProperty<string>("Placeholder") ?? "";
+        }
+
+
 
         StateHasChanged();
     }
@@ -326,6 +385,26 @@
                 selectedElement.SetProperty("Label", checkboxLabel);
                 selectedElement.SetProperty("DefaultChecked", checkboxDefaultChecked);
                 break;
+
+            case "Dropdown":
+                selectedElement.SetProperty("Label", dropdownLabel);
+                var options = dropdownOptionsRaw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+                selectedElement.SetProperty("Options", options);
+                break;
+
+
+            case "RadioButton":
+                selectedElement.SetProperty("Label", radioLabel);
+                var radioOpts = radioOptionsRaw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+                selectedElement.SetProperty("Options", radioOpts);
+                break;
+
+            case "TextArea":
+                selectedElement.SetProperty("Label", textAreaLabel);
+                selectedElement.SetProperty("Placeholder", textAreaPlaceholder);
+                break;
+
+
         }
 
         // Snap to grid after applying changes
@@ -338,7 +417,6 @@
         NotifyHtmlChanged();
         StateHasChanged();
     }
-
     private void DeleteElement()
     {
         if (selectedElement == null) return;
@@ -376,6 +454,32 @@
                 var isChecked = element.GetProperty<bool>("DefaultChecked");
                 element.Html = $"<div class='form-check'><input type='checkbox' class='form-check-input' {(isChecked ? "checked" : "")} /> <label class='form-check-label'>{cbLabel}</label></div>";
                 break;
+
+            case "Dropdown":
+                var dropdownLabel = element.GetProperty<string>("Label");
+                var dropdownOptions = element.GetProperty<List<string>>("Options") ?? new();
+                var labelDropdownHtml = !string.IsNullOrEmpty(dropdownLabel) ? $"<label>{dropdownLabel}</label><br/>" : "";
+                var optionsHtml = string.Join("", dropdownOptions.Select(opt => $"<option>{opt}</option>"));
+                element.Html = $"{labelDropdownHtml}<select class='form-control'>{optionsHtml}</select>";
+                break;
+
+            case "RadioButton":
+                var radioLabel = element.GetProperty<string>("Label");
+                var radioOptions = element.GetProperty<List<string>>("Options") ?? new();
+                var labelRadioHtml = !string.IsNullOrEmpty(radioLabel) ? $"<label>{radioLabel}</label><br/>" : "";
+                var radiosHtml = string.Join("<br/>", radioOptions.Select(opt => $"<input type='radio' name='{radioLabel}' value='{opt}' /> {opt}"));
+                element.Html = $"{labelRadioHtml}{radiosHtml}";
+                break;
+
+            case "TextArea":
+                var taLabel = element.GetProperty<string>("Label");
+                var taPlaceholder = element.GetProperty<string>("Placeholder");
+                var labelTaHtml = !string.IsNullOrEmpty(taLabel) ? $"<label>{taLabel}</label><br/>" : "";
+                element.Html = $"{labelTaHtml}<textarea class='form-control' placeholder='{taPlaceholder}' rows='4'></textarea>";
+                break;
+
+
+
         }
     }
 
@@ -428,7 +532,6 @@
                 element.Html = "<input type='text' class='form-control' placeholder='Enter text here' />";
                 break;
 
-
             case "Button":
                 element.SetProperty("Text", "Click");
                 element.SetProperty("ButtonType", "Primary");
@@ -441,6 +544,42 @@
                 element.Html = "<div class='form-check'><input type='checkbox' class='form-check-input' /> <label class='form-check-label'>Checkbox</label></div>";
                 break;
 
+            case "Dropdown":
+                element.SetProperty("Label", "Dropdown");
+                element.SetProperty("Options", "Option 1,Option 2,Option 3");
+                element.Html = @"
+            <label class='form-label'>Dropdown</label>
+            <select class='form-select'>
+                <option>Option 1</option>
+                <option>Option 2</option>
+                <option>Option 3</option>
+            </select>";
+                break;
+
+            case "RadioButton":
+                element.SetProperty("Label", "Choose an option");
+                element.SetProperty("Options", "Option A,Option B");
+                element.Html = @"
+            <label class='form-label'>Choose an option</label>
+            <div class='form-check'>
+                <input type='radio' name='radioGroup' class='form-check-input' />
+                <label class='form-check-label'>Option A</label>
+            </div>
+            <div class='form-check'>
+                <input type='radio' name='radioGroup' class='form-check-input' />
+                <label class='form-check-label'>Option B</label>
+            </div>";
+                break;
+
+            case "TextArea":
+                element.SetProperty("Label", "Message");
+                element.SetProperty("Placeholder", "Enter your message here");
+                element.SetProperty("Rows", 4);
+                element.SetProperty("Cols", 50);
+                element.Html = @"
+            <label class='form-label'>Message</label>
+            <textarea class='form-control' rows='4' placeholder='Enter your message here'></textarea>";
+                break;
         }
 
         HtmlElements.Add(element);
@@ -448,6 +587,7 @@
         SelectElement(element);
         StateHasChanged();
     }
+
 
     [JSInvokable]
     public void OnMouseMove(double clientX, double clientY)
